@@ -1,0 +1,5 @@
+Django==4.1.6
+djangorestframework==3.14.0
+djangorestframework-jwt==1.11.0
+psycopg2==2.9.5
+python-decouple==3.7
