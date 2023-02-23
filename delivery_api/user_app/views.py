@@ -1,9 +1,14 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+from .models import UserAddresses
 
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
+from .serializers import (
+    UserRegistrationSerializer, UserLoginSerializer, UserSerializer, UserAddressCUDSerializer, UserAddressSerializer
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -60,3 +65,23 @@ class UserLogoutAPIView(APIView):
         except Exception as error:
             print(f'Error while user logout: {error}')
             return Response(status=400)
+
+
+class UserAddressAPIViewSet(ModelViewSet):
+    """
+        Endpoint для адресов пользователя
+    """
+    permission_classes = (IsAuthenticated,)
+    lookup_url_kwarg = 'address_id'
+
+    def get_queryset(self):
+        user_id = self.request.user.pk
+        if address_id := self.kwargs.get('address_id'):
+            return UserAddresses.objects.filter(user_id=user_id, pk=address_id)
+        return UserAddresses.objects.filter(user_id=user_id)
+
+    def get_serializer_class(self):
+        cur_action = self.action
+        if cur_action in ('create', 'update', 'partial_update', 'destroy'):
+            return UserAddressCUDSerializer
+        return UserAddressSerializer

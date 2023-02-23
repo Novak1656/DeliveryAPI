@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import User
+from .models import User, UserAddresses
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -39,3 +39,25 @@ class UserLoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError('Неверный логин или пароль')
+
+
+class UserAddressCUDSerializer(serializers.ModelSerializer):
+    """
+        Сериализатор для создания, обновления и удаления адреса пользователя
+    """
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = UserAddresses
+        fields = ('id', 'user', 'city', 'street', 'house', 'entrance', 'floor', 'flat',)
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    """
+        Сериализатор для адресов пользователя
+    """
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = UserAddresses
+        exclude = ('last_order',)
