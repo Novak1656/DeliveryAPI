@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models, transaction
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db.models import F
 
 
 class UserManager(BaseUserManager):
@@ -85,5 +86,56 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
 
+class UserAddresses(models.Model):
+    user = models.ForeignKey(
+        verbose_name='Пользователь',
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='addresses'
+    )
+    city = models.CharField(
+        verbose_name='Город',
+        max_length=255
+    )
+    street = models.CharField(
+        verbose_name='Улица',
+        max_length=255
+    )
+    house = models.CharField(
+        verbose_name='Номер дома',
+        max_length=255
+    )
+    entrance = models.PositiveIntegerField(
+        verbose_name='Номер подъезда'
+    )
+    floor = models.PositiveIntegerField(
+        verbose_name='Этаж'
+    )
+    flat = models.CharField(
+        verbose_name='Квартира',
+        max_length=255
+    )
+    order_count = models.IntegerField(
+        verbose_name='Кол-во заказов',
+        default=0
+    )
+    last_order = models.DateTimeField(
+        verbose_name='Последний заказ',
+        auto_now=True
+    )
 
-# model with user address
+    class Meta:
+        verbose_name = 'Адреса пользователя'
+        verbose_name_plural = 'Адреса пользователей'
+        ordering = ['order_count', '-last_order']
+
+    def update_order_count(self) -> None:
+        with transaction.atomic():
+            self.order_count = F('order_count') + 1
+            self.save()
+
+    def get_full_address(self):
+        return f'{self.city}, {self.street}, {self.house}, подъезд {self.entrance}, этаж {self.floor}, кв. {self.flat}'
+
+    def __str__(self):
+        return f'{self.user}: {self.get_full_address()}'
