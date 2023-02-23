@@ -95,6 +95,7 @@ class UserResetPasswordAPIView(UpdateAPIView):
     """
     serializer_class = UserResetPasswordSerializer
     permission_classes = (IsAuthenticated,)
+    http_method_names = ('put',)
 
     def put(self, request, *args, **kwargs):
         user = request.user
@@ -115,6 +116,24 @@ class UserDeleteAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated,)
 
     def delete(self, request, *args, **kwargs):
-        user = request.user
-        user.delete()
+        with transaction.atomic():
+            user = request.user
+            user.delete()
         return Response(status=204)
+
+
+class UserUpdateAPIView(UpdateAPIView):
+    """
+        Endpoint для редактирования данных пользователя
+    """
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('put',)
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        req_data = request.data
+        serializer = self.get_serializer(instance=user, data=req_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=200)
