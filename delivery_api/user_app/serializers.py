@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.db import transaction
 from rest_framework import serializers
 from .models import User, UserAddresses
 
@@ -61,3 +62,18 @@ class UserAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAddresses
         exclude = ('last_order',)
+
+
+class UserResetPasswordSerializer(serializers.Serializer):
+    """
+        Сериализатор для смены пароля пользователя
+    """
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        password1 = data.get('password1')
+        password2 = data.get('password2')
+        if password1 != password2:
+            raise serializers.ValidationError('Пароли не совпадают')
+        return data

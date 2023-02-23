@@ -1,6 +1,6 @@
 from django.urls import path, include
 from .views import (
-    UserRegistrationAPIView, UserLoginAPIView, UserLogoutAPIView, UserAddressAPIViewSet,
+    UserRegistrationAPIView, UserLoginAPIView, UserLogoutAPIView, UserAddressAPIViewSet, UserResetPasswordAPIView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
@@ -14,8 +14,11 @@ urlpatterns = [
     path('', include(router.urls)),
 
     # Авторизация
-    path('register/', UserRegistrationAPIView.as_view()),
-    path('login/', UserLoginAPIView.as_view()),
-    path('logout/', UserLogoutAPIView.as_view()),
-    path('token/refresh/', TokenRefreshView.as_view()),
+    path('register', UserRegistrationAPIView.as_view(), name='register'),
+    path('login', UserLoginAPIView.as_view(), name='login'),
+    path('logout', UserLogoutAPIView.as_view(), name='logout'),
+    path('token/refresh', TokenRefreshView.as_view(), name='refresh_token'),
+
+    # Редактирование пользовательских данных
+    path('reset_password', UserResetPasswordAPIView.as_view(), name='reset_password'),
 ]

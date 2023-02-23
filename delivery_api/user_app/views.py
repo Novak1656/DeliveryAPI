@@ -1,5 +1,6 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,7 +8,8 @@ from rest_framework.viewsets import ModelViewSet
 from .models import UserAddresses
 
 from .serializers import (
-    UserRegistrationSerializer, UserLoginSerializer, UserSerializer, UserAddressCUDSerializer, UserAddressSerializer
+    UserRegistrationSerializer, UserLoginSerializer, UserSerializer, UserAddressCUDSerializer, UserAddressSerializer,
+    UserResetPasswordSerializer
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -85,3 +87,23 @@ class UserAddressAPIViewSet(ModelViewSet):
         if cur_action in ('create', 'update', 'partial_update', 'destroy'):
             return UserAddressCUDSerializer
         return UserAddressSerializer
+
+
+class UserResetPasswordAPIView(UpdateAPIView):
+    """
+        Endpoint для смены пароля пользователя
+    """
+    serializer_class = UserResetPasswordSerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('put',)
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        req_data = request.data
+        serializer = self.get_serializer(data=req_data)
+        serializer.is_valid(raise_exception=True)
+        new_password = serializer.validated_data.get('password1')
+        with transaction.atomic():
+            user.set_password(new_password)
+            user.save()
+        return Response(status=200)
