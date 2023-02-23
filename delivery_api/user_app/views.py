@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import GenericAPIView, UpdateAPIView
+from rest_framework.generics import GenericAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -95,7 +95,6 @@ class UserResetPasswordAPIView(UpdateAPIView):
     """
     serializer_class = UserResetPasswordSerializer
     permission_classes = (IsAuthenticated,)
-    http_method_names = ('put',)
 
     def put(self, request, *args, **kwargs):
         user = request.user
@@ -107,3 +106,15 @@ class UserResetPasswordAPIView(UpdateAPIView):
             user.set_password(new_password)
             user.save()
         return Response(status=200)
+
+
+class UserDeleteAPIView(DestroyAPIView):
+    """
+        Endpoint для удаления пользователя
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, *args, **kwargs):
+        user = request.user
+        user.delete()
+        return Response(status=204)
